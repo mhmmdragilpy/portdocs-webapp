@@ -5,24 +5,24 @@ import JSZip from 'jszip';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId'); // Use safeClientName or client ID for folder path
+    const orderId = searchParams.get('orderId'); 
 
-    if (!clientId) {
-      return NextResponse.json({ error: 'Missing clientId' }, { status: 400 });
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
     }
 
-    // List all files in the client's folder
+    // List all files in the order's folder
     const { data: files, error: listError } = await supabaseAdmin
       .storage
       .from('draft-files')
-      .list(clientId);
+      .list(orderId);
 
     if (listError) {
       return NextResponse.json({ error: listError.message }, { status: 500 });
     }
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ error: 'No files found' }, { status: 404 });
+      return new NextResponse("Tidak ada dokumen yang diunggah untuk pesanan ini.", { status: 404 });
     }
 
     const zip = new JSZip();
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       const { data: fileData, error: downloadError } = await supabaseAdmin
         .storage
         .from('draft-files')
-        .download(`${clientId}/${file.name}`);
+        .download(`${orderId}/${file.name}`);
 
       if (downloadError) {
         console.error(`Failed to download ${file.name}:`, downloadError);
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="draft_files_${clientId}.zip"`,
+        'Content-Disposition': `attachment; filename="dokumen_klien_${orderId}.zip"`,
       },
     });
   } catch (error) {

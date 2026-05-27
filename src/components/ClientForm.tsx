@@ -41,6 +41,10 @@ export default function ClientForm() {
   });
 
   const [totalPrice, setTotalPrice] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<Record<string, File>>({});
+
+  const router = useRouter();
 
   const selectedServices = watch('selectedServices');
   const subOptionPergantian = watch('subOptionPergantian');
@@ -49,6 +53,18 @@ export default function ClientForm() {
   const requiresRecommendation = selectedServices.includes('paspor_5') || selectedServices.includes('paspor_10');
   const requiresBSTUpload = selectedServices.includes('revalidasi_bst');
   const requiresLogistics = selectedServices.includes('pergantian_buku_pelaut') || selectedServices.includes('perpanjangan_buku_pelaut');
+
+  const handleFileChange = (key: string, fileData: any) => {
+    if (fileData instanceof File) {
+      setFiles(prev => ({ ...prev, [key]: fileData }));
+    } else if (fileData.file5x5 && fileData.file3x4) {
+      setFiles(prev => ({ 
+        ...prev, 
+        [`${key}_5x5`]: fileData.file5x5,
+        [`${key}_3x4`]: fileData.file3x4
+      }));
+    }
+  };
 
   // Calculate Price
   useEffect(() => {
@@ -67,19 +83,24 @@ export default function ClientForm() {
     setTotalPrice(total);
   }, [selectedServices, subOptionPergantian]);
 
-  const router = useRouter();
-
   const onSubmit = async (data: FormData) => {
     try {
+      setIsSubmitting(true);
       const payload = {
         ...data,
         totalPrice
       };
       
+      const formData = new window.FormData();
+      formData.append('data', JSON.stringify(payload));
+
+      Object.entries(files).forEach(([key, file]) => {
+        formData.append(key, file);
+      });
+
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData // sending multipart/form-data
       });
       
       if (!res.ok) throw new Error("Gagal membuat pesanan");
@@ -91,6 +112,8 @@ export default function ClientForm() {
     } catch (error) {
       console.error(error);
       alert("Terjadi kesalahan saat memproses pesanan.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -108,10 +131,6 @@ export default function ClientForm() {
               className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
               placeholder="Sesuai KTP"
             />
-            <p className="text-xs text-slate-400 flex items-start gap-1">
-              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              Isi sesuai e-KTP dengan huruf kapital. Hindari typo.
-            </p>
           </div>
 
           <div className="space-y-2">
@@ -131,10 +150,6 @@ export default function ClientForm() {
               className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
               placeholder="Alamat lengkap beserta kodepos"
             />
-            <p className="text-xs text-slate-400 flex items-start gap-1">
-              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              Tulis alamat rumah lengkap saat ini untuk kurir mengirimkan dokumen fisik yang sudah jadi.
-            </p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -147,10 +162,6 @@ export default function ClientForm() {
               <option value="nautika">Nautika / Dek</option>
               <option value="teknika">Teknika / Mesin</option>
             </select>
-            <p className="text-xs text-slate-400 flex items-start gap-1">
-              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              Nautika/Dek (Wajib foto latar Biru). Teknika/Mesin (Wajib foto latar Merah).
-            </p>
           </div>
         </div>
       </div>
@@ -221,18 +232,19 @@ export default function ClientForm() {
           <ImageUploader 
             label="Pas Foto" 
             isPassportPhoto 
-            helperText="Kemeja putih lengan panjang, dasi hitam polos. Tajam dan tidak blur. Sistem otomatis memotong ke ukuran 5x5 dan 3x4."
+            onImageProcessed={(f) => handleFileChange('pas_foto', f)}
+            helperText="Kemeja putih lengan panjang, dasi hitam polos. Tajam dan tidak blur."
           />
-          <ImageUploader label="KTP (Kartu Tanda Penduduk)" />
-          <ImageUploader label="Kartu Keluarga (KK)" />
-          <ImageUploader label="Akte Kelahiran" />
-          <ImageUploader label="Ijazah Terakhir" />
+          <ImageUploader label="KTP (Kartu Tanda Penduduk)" onImageProcessed={(f) => handleFileChange('ktp', f)} />
+          <ImageUploader label="Kartu Keluarga (KK)" onImageProcessed={(f) => handleFileChange('kk', f)} />
+          <ImageUploader label="Akte Kelahiran" onImageProcessed={(f) => handleFileChange('akte', f)} />
+          <ImageUploader label="Ijazah Terakhir" onImageProcessed={(f) => handleFileChange('ijazah', f)} />
           
           {requiresRecommendation && (
             <div className="animate-in fade-in zoom-in duration-300">
               <ImageUploader 
                 label="Surat Rekomendasi (Wajib untuk Paspor)" 
-                helperText="Unggah surat keterangan resmi dari perusahaan/agen/sekolah diklat Anda (PDF/JPG)."
+                onImageProcessed={(f) => handleFileChange('rekomendasi', f)}
               />
             </div>
           )}
@@ -241,6 +253,7 @@ export default function ClientForm() {
             <div className="animate-in fade-in zoom-in duration-300">
               <ImageUploader 
                 label="Sertifikat BST Lama (Wajib untuk Revalidasi)" 
+                onImageProcessed={(f) => handleFileChange('bst_lama', f)}
               />
             </div>
           )}
@@ -254,13 +267,9 @@ export default function ClientForm() {
           <div className="p-5 rounded-xl border border-amber-500/30 bg-amber-900/10">
             <p className="text-sm text-amber-200 mb-4 font-medium">
               Layanan yang Anda pilih mewajibkan pengiriman BUKU PELAUT FISIK LAMA ke kantor kami. 
-              Silakan kirimkan ke alamat: <br/><br/>
-              <span className="text-white font-bold block bg-slate-900/50 p-3 rounded mt-2">
-                Jl. Pelabuhan Utama No. 123, Jakarta Utara, 14310. (UP: Admin PortDocs)
-              </span>
             </p>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-200">Nomor Resi Pengiriman (Opsional sekarang, bisa diinfokan nanti)</label>
+              <label className="block text-sm font-medium text-slate-200">Nomor Resi Pengiriman</label>
               <input 
                 {...register('logisticResi')}
                 className="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
@@ -282,10 +291,11 @@ export default function ClientForm() {
           </div>
           <button 
             type="submit" 
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <CreditCard className="w-5 h-5" />
-            Submit & Bayar
+            {isSubmitting ? "Memproses..." : "Submit & Bayar"}
           </button>
         </div>
       </div>
