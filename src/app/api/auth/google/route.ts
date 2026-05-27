@@ -14,8 +14,9 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error('Google Auth Error:', error)
-    return NextResponse.redirect(`${origin}?error=auth_failed`)
+    return NextResponse.redirect(`${origin}?error=auth_failed`, 303)
   }
 
-  return NextResponse.redirect(data.url)
+  // Use 303 See Other to force the browser to change the HTTP method to GET
+  return NextResponse.redirect(data.url, 303)
 }
