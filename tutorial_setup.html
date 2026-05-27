@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Setup PortDocs</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 2rem; background: #f8fafc; }
+        h1, h2, h3 { color: #0f172a; }
+        h1 { border-bottom: 3px solid #3b82f6; padding-bottom: 0.5rem; }
+        .step { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #3b82f6; }
+        code { background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #db2777; }
+        pre { background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        pre code { background: none; color: inherit; padding: 0; }
+        .alert { padding: 1rem; border-radius: 8px; background: #fffbeb; border-left: 4px solid #f59e0b; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Panduan Setup & Deployment Web App PortDocs</h1>
+    <p>Ikuti panduan komprehensif ini untuk menyiapkan database (Supabase), publikasi online (Vercel), dan autentikasi Google. Tahapan ini disusun berurutan agar Anda tidak perlu bekerja dua kali.</p>
+
+    <h2>Bagian 1: Persiapan Supabase Dasar</h2>
+    
+    <div class="step">
+        <h3>1. Buat Proyek Baru</h3>
+        <p>Buka <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a>, login, dan klik <strong>"New Project"</strong>.</p>
+        <p>Beri nama proyek (misal: <code>portdocs-app</code>). Buat dan simpan <strong>Database Password</strong> Anda dengan aman.</p>
+    </div>
+
+    <div class="step">
+        <h3>2. Ambil Kredensial API</h3>
+        <p>Pergi ke menu ⚙️ <strong>Project Settings</strong> -> <strong>API</strong>. Salin dua kunci berikut ke dalam file <code>.env.local</code> Anda:</p>
+        <ul>
+            <li><strong>Project URL</strong> &rarr; <code>NEXT_PUBLIC_SUPABASE_URL</code></li>
+            <li><strong>anon public</strong> &rarr; <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+            <li><strong>service_role secret</strong> &rarr; <code>SUPABASE_SERVICE_ROLE_KEY</code> (Kunci rahasia untuk Admin)</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>3. Setup Storage (Bucket)</h3>
+        <p>Pergi ke menu <strong>Storage</strong>. Klik <strong>New Bucket</strong>.</p>
+        <p>Beri nama <code>draft-files</code>. <strong>JANGAN</strong> centang "Public Bucket" agar dokumen KTP/Ijazah klien tetap rahasia. Klik Save.</p>
+    </div>
+
+    <div class="step">
+        <h3>4. Sinkronisasi Database via Drizzle ORM</h3>
+        <p>Pergi ke menu ⚙️ <strong>Project Settings</strong> -> <strong>Database</strong>. Gulir ke bawah ke bagian <strong>Connection String (URI)</strong>.</p>
+        <p>Salin URL tersebut dan masukkan ke variabel <code>DATABASE_URL</code> di file <code>.env.local</code>. Pastikan mengganti <code>[YOUR-PASSWORD]</code> dengan password database Anda sesungguhnya.</p>
+        <p>Lalu, di terminal VS Code komputer Anda, jalankan:</p>
+        <pre><code>npm run db:push</code></pre>
+        <p>Ini akan otomatis membuat tabel <code>clients</code> dan <code>orders</code> di Supabase Anda.</p>
+    </div>
+
+    <h2>Bagian 2: Deployment ke Vercel (Online)</h2>
+    <div class="alert">
+        <strong>Kenapa Vercel Dulu?</strong> Kita butuh domain Vercel terlebih dahulu (contoh: <code>portdocs.vercel.app</code>) agar bisa didaftarkan di Google Cloud untuk keamanan *login* OAuth nantinya.
+    </div>
+
+    <div class="step">
+        <h3>1. Push ke GitHub</h3>
+        <p>Pastikan semua kode Anda telah di-*commit* dan di-*push* ke *repository* GitHub Anda.</p>
+    </div>
+
+    <div class="step">
+        <h3>2. Import Proyek di Vercel</h3>
+        <p>Buka <a href="https://vercel.com/dashboard" target="_blank">Vercel Dashboard</a> dan login dengan akun GitHub Anda.</p>
+        <p>Klik <strong>"Add New..."</strong> -> <strong>Project</strong>. Pilih repository GitHub PortDocs Anda dan klik <strong>Import</strong>.</p>
+    </div>
+
+    <div class="step">
+        <h3>3. Mengatur Environment Variables</h3>
+        <p>Sebelum menekan tombol "Deploy", buka menu tarik-turun <strong>Environment Variables</strong> di layar setup Vercel.</p>
+        <p>Tambahkan keempat variabel dari file <code>.env.local</code> Anda satu per satu ke dalam daftar:</p>
+        <ul>
+            <li><code>NEXT_PUBLIC_SUPABASE_URL</code></li>
+            <li><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+            <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
+            <li><code>DATABASE_URL</code></li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>4. Deploy!</h3>
+        <p>Klik tombol <strong>Deploy</strong>. Vercel akan memberikan domain gratis (contoh: <code>https://portdocs.vercel.app</code>). <strong>Salin domain URL ini</strong>, kita akan membutuhkannya di langkah selanjutnya.</p>
+    </div>
+
+    <h2>Bagian 3: Konfigurasi Google OAuth (Login Klien)</h2>
+
+    <div class="step">
+        <h3>1. Tambahkan Domain Vercel ke Supabase</h3>
+        <p>Buka Supabase Anda, pergi ke menu <strong>Authentication</strong> -> <strong>URL Configuration</strong>.</p>
+        <p>Pada bagian <strong>Site URL</strong>, masukkan domain Vercel yang baru Anda dapatkan (contoh: <code>https://portdocs.vercel.app</code>).</p>
+        <p>Pada bagian <strong>Redirect URLs</strong>, tambahkan <code>https://portdocs.vercel.app/api/auth/callback</code>. Klik Save.</p>
+    </div>
+
+    <div class="step">
+        <h3>2. Dapatkan Kredensial Google Cloud</h3>
+        <p>Buka <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</p>
+        <p>Buat kredensial <strong>OAuth 2.0 Client IDs</strong>.</p>
+        <p>Di bagian <strong>Authorized redirect URIs</strong> pada Google Console, masukkan URI Redirect dari Supabase (Biasanya berbentuk <code>https://[PROJECT_ID].supabase.co/auth/v1/callback</code>).</p>
+    </div>
+
+    <div class="step">
+        <h3>3. Aktifkan Google di Supabase</h3>
+        <p>Pergi ke menu <strong>Authentication</strong> -> <strong>Providers</strong> di Supabase.</p>
+        <p>Pilih <strong>Google</strong> dan aktifkan. Masukkan <strong>Client ID</strong> dan <strong>Client Secret</strong> yang baru Anda dapatkan dari Google Cloud. Klik Save.</p>
+    </div>
+
+    <div class="alert">
+        🎉 <strong>Selesai!</strong> Web App Anda sekarang sudah online, dilengkapi dengan penyimpanan *database* yang aman dan fitur login menggunakan Google.
+    </div>
+</body>
+</html>
