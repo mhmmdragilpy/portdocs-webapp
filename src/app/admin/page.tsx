@@ -26,7 +26,8 @@ export default async function AdminDashboard() {
   })
   .from(orders)
   .leftJoin(clients, eq(orders.clientId, clients.id))
-  .orderBy(desc(orders.createdAt));
+  .orderBy(desc(orders.createdAt))
+  .limit(50);
 
   return <AdminDashboardClient initialOrders={allOrders} />;
 }

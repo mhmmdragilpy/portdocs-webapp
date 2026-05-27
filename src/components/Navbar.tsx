@@ -29,12 +29,14 @@ export default async function Navbar() {
               >
                 Layanan
               </Link>
-              <Link
-                href="/admin"
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Admin Panel
-              </Link>
+              {user && (
+                <Link
+                  href="/history"
+                  className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Riwayat Pesanan
+                </Link>
+              )}
             </div>
             
             <ThemeToggle />

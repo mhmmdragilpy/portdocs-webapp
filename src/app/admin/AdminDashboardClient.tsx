@@ -240,19 +240,28 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
               {selectedOrderForPreview.documents && Object.keys(selectedOrderForPreview.documents).length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Dokumen Klien</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(selectedOrderForPreview.documents).map(([key, path]) => (
-                      <a 
-                        key={key} 
-                        href={`https://kruyvomdivteaouwkgyi.supabase.co/storage/v1/object/public/draft-files/${path}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
-                      >
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize truncate mr-2">{key.replace(/_/g, ' ')}</span>
-                        <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-500 flex-shrink-0" />
-                      </a>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {Object.entries(selectedOrderForPreview.documents).map(([key, path]) => {
+                      const url = `https://kruyvomdivteaouwkgyi.supabase.co/storage/v1/object/public/draft-files/${path}`;
+                      const isImage = (path as string).match(/\.(jpeg|jpg|gif|png|webp)$/i);
+                      return (
+                        <div key={key} className="flex flex-col border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800/50">
+                          <div className="p-2 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize truncate">{key.replace(/_/g, ' ')}</span>
+                            <a href={url} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600" title="Buka Penuh">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                          <div className="bg-slate-100 dark:bg-slate-900 h-48 relative">
+                            {isImage ? (
+                              <img src={url} alt={key} loading="lazy" className="absolute inset-0 w-full h-full object-contain" />
+                            ) : (
+                              <iframe src={`${url}#toolbar=0`} loading="lazy" className="absolute inset-0 w-full h-full border-0" title={key} />
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
