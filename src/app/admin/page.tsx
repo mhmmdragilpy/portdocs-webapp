@@ -12,12 +12,17 @@ export default async function AdminDashboard() {
     id: orders.id,
     clientId: clients.id,
     clientName: clients.name,
+    phone: clients.phone,
+    major: clients.major,
     address: clients.address,
     services: orders.services,
+    subOption: orders.subOption,
     totalPrice: orders.totalPrice,
     status: orders.status,
+    trackingNumberLama: orders.trackingNumberLama,
     date: orders.createdAt,
-    paymentProofUrl: orders.paymentProofUrl
+    paymentProofUrl: orders.paymentProofUrl,
+    documents: orders.documents
   })
   .from(orders)
   .leftJoin(clients, eq(orders.clientId, clients.id))

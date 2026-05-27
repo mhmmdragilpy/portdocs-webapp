@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { clients, orders } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 
@@ -32,12 +33,14 @@ export async function POST(request: Request) {
     const [order] = await db.insert(orders).values({
       clientId: client.id,
       services: data.selectedServices,
+      subOption: data.subOptionPergantian || null,
       totalPrice: data.totalPrice,
       trackingNumberLama: data.logisticResi || null,
     }).returning({ id: orders.id });
 
     // 3. Upload all files to Supabase Storage
     const safeClientName = data.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const uploadedDocs: Record<string, string> = {};
     
     // Loop through FormData keys
     for (const [key, value] of Array.from(formData.entries())) {
@@ -60,8 +63,17 @@ export async function POST(request: Request) {
 
         if (uploadError) {
           console.error(`Error uploading ${key}:`, uploadError);
+        } else {
+          uploadedDocs[key] = filePath;
         }
       }
+    }
+
+    // 4. Update Order with uploaded documents
+    if (Object.keys(uploadedDocs).length > 0) {
+      await db.update(orders)
+        .set({ documents: uploadedDocs })
+        .where(eq(orders.id, order.id));
     }
 
     return NextResponse.json({ success: true, orderId: order.id });

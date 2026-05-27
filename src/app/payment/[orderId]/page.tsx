@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import PaymentClient from './PaymentClient';
+import PaymentClient from '@/app/payment/[orderId]/PaymentClient';
 
 export default async function PaymentPage(props: { params: Promise<{ orderId: string }> }) {
   const params = await props.params;
