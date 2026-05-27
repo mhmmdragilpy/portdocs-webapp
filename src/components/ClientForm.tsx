@@ -55,16 +55,8 @@ export default function ClientForm() {
   const requiresBSTUpload = selectedServices.includes('revalidasi_bst');
   const requiresLogistics = selectedServices.includes('pergantian_buku_pelaut') || selectedServices.includes('perpanjangan_buku_pelaut');
 
-  const handleFileChange = (key: string, fileData: any) => {
-    if (fileData instanceof File) {
-      setFiles(prev => ({ ...prev, [key]: fileData }));
-    } else if (fileData.file5x5 && fileData.file3x4) {
-      setFiles(prev => ({ 
-        ...prev, 
-        [`${key}_5x5`]: fileData.file5x5,
-        [`${key}_3x4`]: fileData.file3x4
-      }));
-    }
+  const handleFileChange = (key: string, fileData: File) => {
+    setFiles(prev => ({ ...prev, [key]: fileData }));
   };
 
   useEffect(() => {
@@ -106,8 +98,8 @@ export default function ClientForm() {
         if (!res.ok) throw new Error("Gagal membuat pesanan");
         const result = await res.json();
         if (result.success) {
-          alert("Pesanan berhasil dibuat! Anda akan dialihkan ke Riwayat Pesanan.");
-          router.push(`/history`);
+          setStep(3);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       } catch (error) {
         console.error(error);
@@ -233,7 +225,6 @@ export default function ClientForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ImageUploader 
             label="Pas Foto" 
-            isPassportPhoto 
             onImageProcessed={(f) => handleFileChange('pas_foto', f)}
             helperText="Kemeja putih lengan panjang, dasi hitam polos. Tajam dan tidak blur."
           />
@@ -326,8 +317,30 @@ export default function ClientForm() {
         </div>
       </div>
 
-      {/* Footer Invoice & Submit */}
-      <div className="sticky bottom-4 z-40">
+      {/* Step 3: Sukses */}
+      {step === 3 && (
+        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-8 sm:p-12 text-center animate-in zoom-in duration-300">
+          <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-emerald-900 dark:text-white mb-4">Pembayaran Berhasil Dikirim!</h2>
+          <p className="text-emerald-700 dark:text-emerald-200 mb-8 max-w-md mx-auto text-lg">
+            Pesanan Anda telah kami terima dan sedang dalam proses verifikasi. Anda dapat melacak status pesanan di menu Riwayat Pesanan.
+          </p>
+          <button 
+            type="button" 
+            onClick={() => window.location.href = '/'}
+            className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      )}
+
+      {/* Footer Invoice & Submit (Only for Step 1 and 2) */}
+      <div className={step === 3 ? 'hidden' : 'sticky bottom-4 z-40'}>
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-lg">
           <div>
             <p className="text-sm text-slate-500 dark:text-slate-400">Total Estimasi Biaya</p>

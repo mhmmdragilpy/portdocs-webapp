@@ -6,25 +6,18 @@ import { UploadCloud } from "lucide-react";
 interface ImageUploaderProps {
   label: string;
   helperText?: string;
-  onImageProcessed?: (files: { file5x5: File, file3x4: File } | File) => void;
-  isPassportPhoto?: boolean; // If true, triggers cropping to 5x5 and 3x4
+  onImageProcessed?: (file: File) => void;
 }
 
-export default function ImageUploader({ label, helperText, onImageProcessed, isPassportPhoto }: ImageUploaderProps) {
+export default function ImageUploader({ label, helperText, onImageProcessed }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPreview(URL.createObjectURL(file));
-      // TODO: Implement actual cropping logic using react-avatar-editor or react-easy-crop
       if (onImageProcessed) {
-        if (isPassportPhoto) {
-          // Stub: return original file twice for now
-          onImageProcessed({ file5x5: file, file3x4: file });
-        } else {
-          onImageProcessed(file);
-        }
+        onImageProcessed(file);
       }
     }
   };

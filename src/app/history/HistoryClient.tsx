@@ -87,6 +87,63 @@ export default function HistoryClient({ orders }: { orders: any[] }) {
                     </Link>
                   )}
                 </div>
+
+                {/* Tracking Progress Stepper */}
+                <div className="mt-8">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">Status Pelacakan Pesanan:</p>
+                  
+                  {(() => {
+                    // Normalize the status string to lower case for comparison
+                    const s = (order.status || "").toLowerCase();
+                    let activeStep = 1;
+                    if (s.includes("selesai") || s.includes("pengiriman")) activeStep = 4;
+                    else if (s.includes("input portal")) activeStep = 3;
+                    else if (s.includes("diverifikasi") || s.includes("fisik")) activeStep = 2;
+                    else if (s.includes("verifikasi pembayaran")) activeStep = 1.5;
+
+                    const steps = [
+                      { num: 1, label: "Pembayaran" },
+                      { num: 2, label: "Verifikasi Berkas" },
+                      { num: 3, label: "Input Portal" },
+                      { num: 4, label: "Selesai" }
+                    ];
+
+                    return (
+                      <div className="relative flex justify-between items-center w-full">
+                        {/* Background Track */}
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                        
+                        {/* Active Progress Track */}
+                        <div 
+                          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-500 dark:bg-blue-400 rounded-full transition-all duration-700 ease-in-out"
+                          style={{ width: activeStep === 1 ? '0%' : activeStep === 1.5 ? '16%' : activeStep === 2 ? '33%' : activeStep === 3 ? '66%' : '100%' }}
+                        />
+
+                        {/* Steps */}
+                        {steps.map((step) => {
+                          const isActive = activeStep >= step.num;
+                          const isCurrent = Math.floor(activeStep) === step.num;
+                          return (
+                            <div key={step.num} className="relative z-10 flex flex-col items-center">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-500 shadow-sm
+                                ${isActive ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-2 border-slate-200 dark:border-slate-700'}
+                                ${isCurrent && activeStep !== 4 ? 'ring-4 ring-blue-100 dark:ring-blue-900/40 animate-pulse' : ''}
+                              `}>
+                                {isActive ? <CheckCircle className="w-5 h-5" /> : step.num}
+                              </div>
+                              <div className="absolute top-10 w-24 text-center">
+                                <p className={`text-xs font-medium ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                  {step.label}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                  <div className="h-10"></div> {/* Spacer for absolute labels */}
+                </div>
               </div>
             </div>
           );
