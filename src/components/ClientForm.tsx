@@ -43,6 +43,7 @@ export default function ClientForm() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<Record<string, File>>({});
+  const [step, setStep] = useState(1);
 
   const router = useRouter();
 
@@ -83,27 +84,44 @@ export default function ClientForm() {
   }, [selectedServices, subOptionPergantian]);
 
   const onSubmit = async (data: FormData) => {
-    try {
-      setIsSubmitting(true);
-      const payload = { ...data, totalPrice };
-      const formData = new window.FormData();
-      formData.append('data', JSON.stringify(payload));
-      Object.entries(files).forEach(([key, file]) => formData.append(key, file));
+    if (step === 1) {
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
-      const res = await fetch('/api/orders', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error("Gagal membuat pesanan");
-      const result = await res.json();
-      if (result.success && result.orderId) router.push(`/payment/${result.orderId}`);
-    } catch (error) {
-      console.error(error);
-      alert("Terjadi kesalahan saat memproses pesanan.");
-    } finally {
-      setIsSubmitting(false);
+    if (step === 2) {
+      if (!files['payment_proof']) {
+        alert("Mohon unggah bukti pembayaran / transfer.");
+        return;
+      }
+      try {
+        setIsSubmitting(true);
+        const payload = { ...data, totalPrice };
+        const formData = new window.FormData();
+        formData.append('data', JSON.stringify(payload));
+        Object.entries(files).forEach(([key, file]) => formData.append(key, file));
+
+        const res = await fetch('/api/orders', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error("Gagal membuat pesanan");
+        const result = await res.json();
+        if (result.success) {
+          alert("Pesanan berhasil dibuat! Anda akan dialihkan ke Riwayat Pesanan.");
+          router.push(`/history`);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Terjadi kesalahan saat memproses pesanan.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+      {/* Step 1: Formulir Data */}
+      <div className={step === 1 ? 'space-y-10 animate-in fade-in' : 'hidden'}>
       {/* 1. Biodata */}
       <div className="space-y-6">
         <h3 className="text-xl font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">1. Informasi Pribadi</h3>
@@ -263,24 +281,83 @@ export default function ClientForm() {
           </div>
         </div>
       )}
+      </div> {/* Penutup Step 1 */}
+
+      {/* Step 2: Pembayaran */}
+      <div className={step === 2 ? 'space-y-8 animate-in fade-in slide-in-from-right-4' : 'hidden'}>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Selesaikan Pembayaran</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8">Silakan transfer sesuai dengan total tagihan. Pesanan akan langsung diproses setelah bukti pembayaran Anda kami terima.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* QRIS */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Metode QRIS</h3>
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-center">
+                <img src="/payment.svg" alt="QRIS Payment" className="max-w-[200px] w-full" />
+              </div>
+            </div>
+
+            {/* Bank Transfer */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Transfer Bank</h3>
+              <div className="space-y-3">
+                <div className="bg-blue-50 dark:bg-blue-500/10 p-4 rounded-xl border border-blue-200 dark:border-blue-500/20">
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">BCA</p>
+                  <p className="text-2xl font-mono font-bold text-slate-900 dark:text-white mt-1">0070951606</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">a.n MUHAMMAD RAGIL</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-500/10 p-4 rounded-xl border border-orange-200 dark:border-orange-500/20">
+                  <p className="text-sm font-semibold text-orange-900 dark:text-orange-300">BRI</p>
+                  <p className="text-2xl font-mono font-bold text-slate-900 dark:text-white mt-1">168001007122507</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">a.n MUHAMMAD RAGIL</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Unggah Bukti Transfer</h3>
+            <ImageUploader 
+              label="Bukti Pembayaran / Transfer" 
+              onImageProcessed={(f) => handleFileChange('payment_proof', f)}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Footer Invoice & Submit */}
       <div className="sticky bottom-4 z-40">
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-200 dark:border-blue-500/30 rounded-2xl shadow-lg">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-lg">
           <div>
             <p className="text-sm text-slate-500 dark:text-slate-400">Total Estimasi Biaya</p>
             <p className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span className="text-blue-600 dark:text-blue-400">Rp</span> {totalPrice.toLocaleString('id-ID')}
             </p>
           </div>
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <CreditCard className="w-5 h-5" />
-            {isSubmitting ? "Memproses..." : "Submit & Bayar"}
-          </button>
+          <div className="flex w-full sm:w-auto gap-3 flex-col sm:flex-row">
+            {step === 2 && (
+              <button 
+                type="button" 
+                onClick={() => {
+                  setStep(1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center disabled:opacity-50"
+              >
+                Kembali
+              </button>
+            )}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <CreditCard className="w-5 h-5" />
+              {isSubmitting ? "Memproses..." : (step === 1 ? "Lanjut ke Pembayaran" : "Kirim Semua Data")}
+            </button>
+          </div>
         </div>
       </div>
     </form>

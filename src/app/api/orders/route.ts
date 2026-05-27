@@ -71,8 +71,18 @@ export async function POST(request: Request) {
 
     // 4. Update Order with uploaded documents
     if (Object.keys(uploadedDocs).length > 0) {
+      const documentsOnly = { ...uploadedDocs };
+      const paymentProofUrl = documentsOnly['payment_proof'];
+      
+      if (paymentProofUrl) {
+        delete documentsOnly['payment_proof'];
+      }
+
       await db.update(orders)
-        .set({ documents: uploadedDocs })
+        .set({ 
+          documents: documentsOnly,
+          paymentProofUrl: paymentProofUrl || null,
+        })
         .where(eq(orders.id, order.id));
     }
 
