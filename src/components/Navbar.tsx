@@ -21,8 +21,8 @@ export default async function Navbar() {
               </span>
             </Link>
           </div>
-          <div className="hidden md:flex items-center gap-4">
-            <div className="ml-10 flex items-baseline space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-baseline space-x-2 sm:space-x-4">
               <Link
                 href="/"
                 className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"

@@ -12,7 +12,7 @@ export default function Home() {
         </div>
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Urus Dokumen Pelaut <br className="hidden md:block" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">Lebih Mudah & Cepat</span>
+          <span className="text-blue-600 dark:text-blue-400">Lebih Mudah & Cepat</span>
         </h1>
         <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">
           Pilih layanan yang Anda butuhkan, unggah dokumen secara mandiri, dan kami akan mengurus sisanya hingga dokumen fisik sampai di rumah Anda.
