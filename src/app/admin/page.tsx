@@ -2,7 +2,7 @@ import React from "react";
 import { db } from "@/db";
 import { orders, clients } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-import AdminDashboardClient from "./AdminDashboardClient";
+import AdminDashboardClient from "@/app/admin/AdminDashboardClient";
 
 export const dynamic = "force-dynamic";
 

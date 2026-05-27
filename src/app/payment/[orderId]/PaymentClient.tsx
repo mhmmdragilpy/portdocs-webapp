@@ -48,24 +48,24 @@ export default function PaymentClient({ orderId }: { orderId: string }) {
 
   if (isSuccess) {
     return (
-      <div className="text-center p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-        <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-        <h3 className="text-lg font-bold text-white mb-2">Pembayaran Berhasil Dikirim!</h3>
-        <p className="text-slate-400 text-sm">Pesanan Anda sedang diverifikasi oleh tim kami. Anda akan dialihkan ke halaman utama...</p>
+      <div className="text-center p-6 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl">
+        <CheckCircle className="w-12 h-12 text-emerald-500 dark:text-emerald-400 mx-auto mb-3" />
+        <h3 className="text-lg font-bold text-emerald-900 dark:text-white mb-2">Pembayaran Berhasil Dikirim!</h3>
+        <p className="text-emerald-700 dark:text-slate-400 text-sm">Pesanan Anda sedang diverifikasi oleh tim kami. Anda akan dialihkan ke halaman utama...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 border-t border-slate-700/50 pt-8 mt-4">
-      <h3 className="text-lg font-semibold text-white">Unggah Bukti Transfer</h3>
-      <p className="text-sm text-slate-400">Pastikan nominal pada struk/bukti transfer sesuai dengan total yang tertera.</p>
+    <div className="space-y-4 border-t border-slate-200 dark:border-slate-700/50 pt-8 mt-4">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Unggah Bukti Transfer</h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400">Pastikan nominal pada struk/bukti transfer sesuai dengan total yang tertera.</p>
       
       <div className="flex items-center justify-center w-full">
-        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-600 border-dashed rounded-xl cursor-pointer bg-slate-800/30 hover:bg-slate-800/50 hover:border-blue-500 transition-all">
+        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:border-blue-500 transition-all">
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
-            <p className="text-sm text-slate-300 font-medium">
+            <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
               {file ? file.name : "Klik untuk memilih foto (JPG/PNG)"}
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function PaymentClient({ orderId }: { orderId: string }) {
       <button
         onClick={handleUpload}
         disabled={!file || isUploading}
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isUploading ? "Mengunggah..." : "Konfirmasi Pembayaran"}
       </button>

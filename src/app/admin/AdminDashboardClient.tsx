@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Download, FileText, CheckCircle, Clock, Printer, ExternalLink } from "lucide-react";
+import { Download, Printer, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const STATUS_FLOW = [
@@ -18,7 +18,6 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
   const router = useRouter();
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    // Optimistic UI update
     setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
 
     try {
@@ -38,7 +37,6 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
   };
 
   const handleDownloadZip = (orderId: string) => {
-    // Buka file zip yang dihasilkan server di tab baru (memicu download)
     window.open(`/api/download?orderId=${orderId}`, '_blank');
   };
 
@@ -64,38 +62,38 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-700/50 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700/50 pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Admin Dashboard</h1>
-          <p className="text-slate-400 mt-1">Kelola pesanan klien dan unduh berkas draft.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Admin Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Kelola pesanan klien dan unduh berkas draft.</p>
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden">
+      <div className="bg-white/80 dark:bg-slate-800/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 shadow-xl rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-800/50 border-b border-slate-700">
-                <th className="p-4 text-sm font-semibold text-slate-300">Order ID</th>
-                <th className="p-4 text-sm font-semibold text-slate-300">Klien</th>
-                <th className="p-4 text-sm font-semibold text-slate-300">Layanan</th>
-                <th className="p-4 text-sm font-semibold text-slate-300">Bukti Bayar</th>
-                <th className="p-4 text-sm font-semibold text-slate-300">Status Tracking</th>
-                <th className="p-4 text-sm font-semibold text-slate-300">Aksi</th>
+              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Order ID</th>
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Klien</th>
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Layanan</th>
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">Bukti Bayar</th>
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Status Tracking</th>
+                <th className="p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/50">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
               {orders.map(order => (
-                <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="p-4 text-xs text-slate-300 font-medium font-mono">{order.id}</td>
+                <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                  <td className="p-4 text-xs text-slate-500 dark:text-slate-300 font-medium font-mono">{order.id}</td>
                   <td className="p-4">
-                    <p className="text-sm font-semibold text-white">{order.clientName}</p>
-                    <p className="text-xs text-slate-400">{new Date(order.date).toLocaleDateString('id-ID')}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{order.clientName}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(order.date).toLocaleDateString('id-ID')}</p>
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap gap-1 max-w-[200px]">
                       {Array.isArray(order.services) && order.services.map((srv: string, i: number) => (
-                        <span key={i} className="inline-block px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded border border-slate-600">
+                        <span key={i} className="inline-block px-2 py-1 bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 text-xs rounded border border-slate-200 dark:border-slate-600">
                           {srv}
                         </span>
                       ))}
@@ -106,12 +104,12 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
                       <a 
                         href={`https://kruyvomdivteaouwkgyi.supabase.co/storage/v1/object/public/draft-files/${order.paymentProofUrl}`}
                         target="_blank" 
-                        className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-xs"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-center gap-1 text-xs font-medium"
                       >
                         <ExternalLink className="w-3 h-3" /> Lihat
                       </a>
                     ) : (
-                      <span className="text-slate-500 text-xs">-</span>
+                      <span className="text-slate-400 dark:text-slate-500 text-xs">-</span>
                     )}
                   </td>
                   <td className="p-4">
@@ -119,28 +117,28 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
                       value={order.status || ''}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       className={`text-xs font-semibold rounded-full px-3 py-1 outline-none appearance-none cursor-pointer border
-                        ${order.status === 'Selesai & Dalam Pengiriman' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                          order.status?.includes('Menunggu') ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
-                          'bg-blue-500/10 text-blue-400 border-blue-500/20'}
+                        ${order.status === 'Selesai & Dalam Pengiriman' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 
+                          order.status?.includes('Menunggu') ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' : 
+                          'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'}
                       `}
                     >
                       {STATUS_FLOW.map(status => (
-                        <option key={status} value={status} className="bg-slate-800 text-white">{status}</option>
+                        <option key={status} value={status} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">{status}</option>
                       ))}
                     </select>
                   </td>
                   <td className="p-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <button 
                         onClick={() => handleDownloadZip(order.id)}
-                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors group relative"
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-colors group relative"
                         title="Download Dokumen Klien (ZIP)"
                       >
                         <Download className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handlePrintLabel(order)}
-                        className="p-2 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors group relative"
+                        className="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20 rounded-lg transition-colors group relative"
                         title="Cetak Label Pengiriman"
                       >
                         <Printer className="w-4 h-4" />
@@ -152,7 +150,7 @@ export default function AdminDashboardClient({ initialOrders }: { initialOrders:
               
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center p-8 text-slate-400">Belum ada pesanan masuk.</td>
+                  <td colSpan={6} className="text-center p-8 text-slate-500 dark:text-slate-400">Belum ada pesanan masuk.</td>
                 </tr>
               )}
             </tbody>
