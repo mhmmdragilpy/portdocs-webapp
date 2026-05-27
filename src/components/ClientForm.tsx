@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Info, Calculator, CreditCard } from "lucide-react";
 import ImageUploader from "./ImageUploader";
+import { useRouter } from "next/navigation";
 
 const SERVICES = [
   { id: 'buku_pelaut_baru', label: 'Buku Pelaut Baru', price: 800000, desc: 'Tanpa kirim fisik dokumen lama.' },
@@ -66,10 +67,31 @@ export default function ClientForm() {
     setTotalPrice(total);
   }, [selectedServices, subOptionPergantian]);
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form Submitted", data);
-    // TODO: Connect to backend for upload and DB insert
-    alert("Pesanan berhasil disubmit! Total: Rp " + totalPrice.toLocaleString('id-ID'));
+  const router = useRouter();
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      const payload = {
+        ...data,
+        totalPrice
+      };
+      
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) throw new Error("Gagal membuat pesanan");
+      
+      const result = await res.json();
+      if (result.success && result.orderId) {
+        router.push(`/payment/${result.orderId}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat memproses pesanan.");
+    }
   };
 
   return (

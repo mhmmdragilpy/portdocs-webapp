@@ -18,6 +18,7 @@ export const orders = pgTable('orders', {
   status: varchar('status', { length: 100 }).default('Menunggu Pembayaran'),
   trackingNumberLama: varchar('tracking_number_lama', { length: 100 }),
   trackingNumberBaru: varchar('tracking_number_baru', { length: 100 }),
+  paymentProofUrl: text('payment_proof_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
