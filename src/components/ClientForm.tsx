@@ -6,6 +6,8 @@ import { Calculator, CreditCard } from "lucide-react";
 import ImageUploader from "./ImageUploader";
 import { useRouter } from "next/navigation";
 
+import { supabase } from '@/utils/supabase/client';
+
 const SERVICES = [
   { id: 'buku_pelaut_baru', label: 'Buku Pelaut Baru', price: 800000, desc: 'Tanpa kirim fisik dokumen lama.' },
   { id: 'pergantian_buku_pelaut', label: 'Pergantian Buku Pelaut', price: 0, hasSubOptions: true, desc: 'Wajib kirim Buku Pelaut fisik lama.' },
@@ -89,21 +91,76 @@ export default function ClientForm() {
       }
       try {
         setIsSubmitting(true);
-        const payload = { ...data, totalPrice };
-        const formData = new window.FormData();
-        formData.append('data', JSON.stringify(payload));
-        Object.entries(files).forEach(([key, file]) => formData.append(key, file));
+        const clientId = crypto.randomUUID();
+        const orderId = crypto.randomUUID();
+        
+        // 1. Upload files
+        const safeClientName = data.name.replace(/[^a-zA-Z0-9]/g, '_');
+        const uploadedDocs: Record<string, string> = {};
+        let paymentProofUrl = null;
 
-        const res = await fetch('/api/orders', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error("Gagal membuat pesanan");
-        const result = await res.json();
-        if (result.success) {
-          setStep(3);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+        for (const [key, file] of Object.entries(files)) {
+          const ext = file.name.split('.').pop();
+          const newFileName = `${key}_${safeClientName}.${ext}`;
+          const filePath = `${orderId}/${newFileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('draft-files')
+            .upload(filePath, file, {
+              upsert: true
+            });
+
+          if (uploadError) {
+            console.error(`Error uploading ${key}:`, uploadError);
+            throw new Error(`Gagal mengunggah file dokumen`);
+          } else {
+            if (key === 'payment_proof') {
+              paymentProofUrl = filePath;
+            } else {
+              uploadedDocs[key] = filePath;
+            }
+          }
         }
+
+        // 2. Insert to clients
+        const { data: userData } = await supabase.auth.getUser(); 
+        const { error: clientError } = await supabase.from('clients').insert([{
+          id: clientId,
+          user_id: userData?.user?.id || null, 
+          name: data.name,
+          phone: data.phone,
+          address: data.address,
+          major: data.major
+        }]);
+
+        if (clientError) {
+          console.error('Client insert error:', clientError);
+          throw new Error('Gagal menyimpan biodata pelanggan.');
+        }
+
+        // 3. Insert to orders
+        const { error: orderError } = await supabase.from('orders').insert([{
+          id: orderId,
+          client_id: clientId,
+          services: data.selectedServices,
+          sub_option: data.subOptionPergantian || null,
+          total_price: totalPrice,
+          status: 'Menunggu Pembayaran',
+          tracking_number_lama: data.logisticResi || null,
+          payment_proof_url: paymentProofUrl,
+          documents: uploadedDocs
+        }]);
+
+        if (orderError) {
+          console.error('Order insert error:', orderError);
+          throw new Error('Gagal menyimpan pesanan.');
+        }
+
+        setStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (error) {
         console.error(error);
-        alert("Terjadi kesalahan saat memproses pesanan.");
+        alert(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses pesanan.");
       } finally {
         setIsSubmitting(false);
       }
