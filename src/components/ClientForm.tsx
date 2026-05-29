@@ -91,7 +91,6 @@ export default function ClientForm() {
       }
       try {
         setIsSubmitting(true);
-        const clientId = crypto.randomUUID();
         const orderId = crypto.randomUUID();
         
         // 1. Upload files
@@ -107,12 +106,12 @@ export default function ClientForm() {
           const { error: uploadError } = await supabase.storage
             .from('draft-files')
             .upload(filePath, file, {
-              upsert: true
+              upsert: false
             });
 
           if (uploadError) {
             console.error(`Error uploading ${key}:`, uploadError);
-            throw new Error(`Gagal mengunggah file dokumen`);
+            throw new Error(`Gagal mengunggah file dokumen. Pesan: ${uploadError.message}`);
           } else {
             if (key === 'payment_proof') {
               paymentProofUrl = filePath;
@@ -122,38 +121,25 @@ export default function ClientForm() {
           }
         }
 
-        // 2. Insert to clients
-        const { data: userData } = await supabase.auth.getUser(); 
-        const { error: clientError } = await supabase.from('clients').insert([{
-          id: clientId,
-          user_id: userData?.user?.id || null, 
-          name: data.name,
-          phone: data.phone,
-          address: data.address,
-          major: data.major
-        }]);
-
-        if (clientError) {
-          console.error('Client insert error:', clientError);
-          throw new Error('Gagal menyimpan biodata pelanggan.');
-        }
-
-        // 3. Insert to orders
-        const { error: orderError } = await supabase.from('orders').insert([{
-          id: orderId,
-          client_id: clientId,
-          services: data.selectedServices,
-          sub_option: data.subOptionPergantian || null,
-          total_price: totalPrice,
-          status: 'Menunggu Pembayaran',
-          tracking_number_lama: data.logisticResi || null,
-          payment_proof_url: paymentProofUrl,
-          documents: uploadedDocs
-        }]);
-
-        if (orderError) {
-          console.error('Order insert error:', orderError);
-          throw new Error('Gagal menyimpan pesanan.');
+        // 2. Submit Data via Drizzle Backend
+        const payload = { 
+          ...data, 
+          totalPrice,
+          uploadedDocs,
+          paymentProofUrl
+        };
+        
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+          const errRes = await res.json();
+          throw new Error(errRes.error || "Gagal membuat pesanan");
         }
 
         setStep(3);
